@@ -20,9 +20,9 @@
     const STORAGE_KEY = 'my_market_watchlist';
 
     const getMarketWatchlist_v2 = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
     const setMarketWatchlist_v2 = (list) => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-      console.log(list);
     }
 
 
@@ -31,14 +31,12 @@
         if (!list.some(t => t.id === id)) {
             list.push({ id, name, value });
             await setMarketWatchlist_v2(list);
-            console.log(`${name} has been added to your market watchlist.`);
         }
     };
 
     const removeItemFromMarketWatchlist = async (id) => {
         const list = getMarketWatchlist_v2().filter(t => t.id !== id);
         await setMarketWatchlist_v2(list);
-        console.log(`Item removed from your market watchlist.`);
     };
 
     const getMarketValue = async (id) => {
@@ -104,6 +102,7 @@
 
       // 4. Fetch watchlist
       const watchlist = await getMarketWatchlist_v2();
+
 
       // 5. Build content
       let html = '';
@@ -204,7 +203,7 @@
     if (topLinks) {
         topLinks.appendChild(settingsLink);
         const titleContainer = document.querySelector('.content-title');
-        titleContainer?.appendChild(container);
+   titleContainer?.appendChild(container);
     }
 
     // Toggle
@@ -295,9 +294,8 @@
 
 
     let alreadyInitialized = false;
-
+    
     const refreshUI = () => {
-      console.log(getMarketWatchlist_v2())
       if (!alreadyInitialized) {
           alreadyInitialized = true;
           const div = document.querySelector('div[class*="sidebar"][class*="mobile"]');
@@ -312,5 +310,5 @@
     };
 
     const observer = new MutationObserver(refreshUI);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {childList: true, subtree: true });
 })();
