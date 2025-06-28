@@ -2,9 +2,6 @@
 // @name        Torn Market Watchlist
 // @namespace   https://torn.com
 // @match       https://www.torn.com/*
-// @grant        GM_getValue
-// @grant        GM_setValue
-// @grant        GM_registerMenuCommand
 // @version     1.0
 // @connect      api.torn.com
 // @description watchlist for the torn market
@@ -16,52 +13,32 @@
     'use strict';
 
     const getApiKey = () =>  {
-      //if(true)
-        return GM_getValue('torn_api_key', '');
-      //else
-      //  let APIKey = '###PDA-APIKEY###';
+      let APIKey = '###PDA-APIKEY###';
+      return APIKey;
     }
-
-    GM_registerMenuCommand('Set API Key', async () => {
-      const key = prompt('Enter your Torn API Key:');
-      if (key) {
-          await GM_setValue('torn_api_key', key);
-          alert('API key saved. Reload the page.');
-      }
-    });
-
-    const getMarketWatchlist = () => {
-      const list = GM_getValue('my_market_watchlist', []);
-      return list;
-      //return GM_getValue('my_market_watchlist', []);
-    };
-
-    const setMarketWatchlist = async (list) => {
-      await GM_setValue('my_market_watchlist', list);
-    };
-
-
 
     const STORAGE_KEY = 'my_market_watchlist';
 
     const getMarketWatchlist_v2 = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    const setMarketWatchlist_v2 = (list) => localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-
+    const setMarketWatchlist_v2 = (list) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      console.log(list);
+    }
 
 
     const addItemToMarketWatchlist = async (id, name, value) => {
-        const list = await getMarketWatchlist();
+        const list = await getMarketWatchlist_v2();
         if (!list.some(t => t.id === id)) {
             list.push({ id, name, value });
-            await setMarketWatchlist(list);
-            alert(`${name} has been added to your market watchlist.`);
+            await setMarketWatchlist_v2(list);
+            console.log(`${name} has been added to your market watchlist.`);
         }
     };
 
     const removeItemFromMarketWatchlist = async (id) => {
-        const list = getMarketWatchlist().filter(t => t.id !== id);
-        await setMarketWatchlist(list);
-        alert(`Item removed from your market watchlist.`);
+        const list = getMarketWatchlist_v2().filter(t => t.id !== id);
+        await setMarketWatchlist_v2(list);
+        console.log(`Item removed from your market watchlist.`);
     };
 
     const getMarketValue = async (id) => {
@@ -126,7 +103,7 @@
       });
 
       // 4. Fetch watchlist
-      const watchlist = await getMarketWatchlist();
+      const watchlist = await getMarketWatchlist_v2();
 
       // 5. Build content
       let html = '';
@@ -176,13 +153,14 @@
           document.head.appendChild(style);
       }
     };
-    
+
+
     const updateRefPercent = async (id, newValue) => {
-      const list = await getMarketWatchlist();
+      const list = await getMarketWatchlist_v2();
       const updated = list.map(item =>
         item.id === id ? { id: item.id, name: item.name, value: newValue } : item
       );
-      GM_setValue('my_market_watchlist', updated);
+        setMarketWatchlist_v2(list);
     };
 
     const fetchItemData = async (id) => {
@@ -239,11 +217,11 @@
     // Show watchlist
     const renderList = async () => {
         const listContainer = container.querySelector('#watchlist-items');
-        const list = await getMarketWatchlist();
+        const list = await getMarketWatchlist_v2();
         listContainer.innerHTML = '';
 
         if (!list.length) {
-            listContainer.innerHTML = '<i>Nenhum item na watchlist.</i>';
+            listContainer.innerHTML = '<i>No item added to the watchlist.</i>';
             return;
         }
 
@@ -319,6 +297,7 @@
     let alreadyInitialized = false;
 
     const refreshUI = () => {
+      console.log(getMarketWatchlist_v2())
       if (!alreadyInitialized) {
           alreadyInitialized = true;
           const div = document.querySelector('div[class*="sidebar"][class*="mobile"]');
