@@ -82,13 +82,14 @@
       bar.style.borderRadius = '4px';
       bar.style.display = 'flex';
       bar.style.alignItems = 'center';
-      bar.style.justifyContent = 'center';
+      bar.style.justifyContent = 'flex-start';
+      bar.style.position = 'relative';
 
       // 3. Create inner scrolling content
       const barContent = document.createElement('div');
       barContent.id = 'market-watchlist-bar-content';
       barContent.style.display = 'inline-block';
-      barContent.style.paddingLeft = '100%';
+      barContent.style.whiteSpace = 'nowrap';
       barContent.style.animation = 'market-ticker-scroll 30s linear infinite';
       barContent.style.cursor = 'pointer';
 
@@ -103,8 +104,7 @@
       // 4. Fetch watchlist
       const watchlist = await getMarketWatchlist_v2();
 
-
-      // 5. Build content
+      // 5. Build content HTML
       let html = '';
       for (const item of watchlist) {
           const { id, name, value: refPercent } = item;
@@ -112,46 +112,54 @@
           const listing_price = await getMarketListingPrice(id);
           if (!market_value || !listing_price) continue;
 
-
           const diff = ((listing_price / market_value) - 1);
           const absDiff = Math.abs(diff);
-
           const diffPercentage = diff * 100;
 
-          if ((absDiff*100) >= refPercent) {
+          if ((absDiff * 100) >= refPercent) {
               html += `
-                <a href="https://www.torn.com/page.php?sid=ItemMarket#/market/view=search&itemID=${id}&itemName=${encodeURIComponent(name)}"
-                   style="text-decoration: none; color: inherit;">
-                  <div style="margin-right: 32px; display: inline-block;">
-                    <b>${name}</b>:
-                    <span style="color:${diff > 0 ? '#f00' : '#0f0'};">
-                      ${diff > 0 ? '+' : ''}${diffPercentage.toFixed(2)}%
-                    </span>
-                    (Market: $${market_value.toLocaleString()})
-                  </div>
-                </a>
+                  <a href="https://www.torn.com/page.php?sid=ItemMarket#/market/view=search&itemID=${id}&itemName=${encodeURIComponent(name)}"
+                     style="text-decoration: none; color: inherit;">
+                    <div style="margin-right: 32px; display: inline-block;">
+                      <b>${name}</b>:
+                      <span style="color:${diff > 0 ? '#f00' : '#0f0'};">
+                        ${diff > 0 ? '+' : ''}${diffPercentage.toFixed(2)}%
+                      </span>
+                      (Market: $${market_value.toLocaleString()})
+                    </div>
+                  </a>
               `;
-
           }
       }
 
-      barContent.innerHTML = html || '<span style="color: #888; padding-left: 1rem;">No items outside configured range.</span>';
+      // 6. Apply duplicated content for continuous scroll
+      if (html) {
+          barContent.innerHTML = `
+              <div style="display: inline-block;">${html}</div>
+              <div style="display: inline-block;">${html}</div>
+          `;
+      } else {
+          barContent.innerHTML = '<span style="color: #888; padding-left: 1rem;">No items outside configured range.</span>';
+      }
+
+      // 7. Append content and style
       bar.appendChild(barContent);
       container.appendChild(bar);
 
-      // 6. Add the animation style (only once)
+      // 8. Add animation style (once)
       if (!document.getElementById('market-ticker-style')) {
           const style = document.createElement('style');
           style.id = 'market-ticker-style';
           style.textContent = `
               @keyframes market-ticker-scroll {
                   0% { transform: translateX(0); }
-                  100% { transform: translateX(-100%); }
+                  100% { transform: translateX(-50%); }
               }
           `;
           document.head.appendChild(style);
       }
-    };
+  };
+
 
 
     const updateRefPercent = async (id, newValue) => {
@@ -205,7 +213,9 @@
       if (topLinks) {
           topLinks.appendChild(settingsLink);
 
-          const titleContainer = document.querySelector('div[class*="appHeaderWrapper"]');
+          let titleContainer = document.querySelector('div[class*="appHeaderWrapper"]');
+          if(!titleContainer)
+            titleContainer = document.querySelector('div[class*="content-wrapper"]');
           if (titleContainer) {
               titleContainer.appendChild(container);
           }
