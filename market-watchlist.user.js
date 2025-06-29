@@ -13,7 +13,7 @@
     'use strict';
 
     const getApiKey = () =>  {
-      let APIKey = 'J3ctKeECq5LhyeEt';
+      let APIKey = '###PDA-APIKEY###';
       return APIKey;
     }
 
@@ -112,11 +112,13 @@
           const listing_price = await getMarketListingPrice(id);
           if (!market_value || !listing_price) continue;
 
+          //só quer comprar - listing_price menor que market_value
+
           const diff = ((listing_price / market_value) - 1);
           const absDiff = Math.abs(diff);
           const diffPercentage = diff * 100;
 
-          if ((absDiff * 100) >= refPercent) {
+          if (diff < 0 && (absDiff * 100) >= refPercent) {
               html += `
                   <a href="https://www.torn.com/page.php?sid=ItemMarket#/market/view=search&itemID=${id}&itemName=${encodeURIComponent(name)}"
                      style="text-decoration: none; color: inherit;">
