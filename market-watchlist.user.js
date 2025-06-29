@@ -13,7 +13,7 @@
     'use strict';
 
     const getApiKey = () =>  {
-      let APIKey = '###PDA-APIKEY###';
+      let APIKey = 'J3ctKeECq5LhyeEt';
       return APIKey;
     }
 
@@ -174,141 +174,171 @@
         }
     };
 
-  const renderWatchlistConfigPanel = async () => {
-    if (document.getElementById('watchlist-settings')) return;
+    const renderWatchlistConfigPanel = async () => {
+      if (document.getElementById('watchlist-settings')) return;
 
-    const container = document.createElement('div');
-    container.id = 'watchlist-settings';
-    container.style.marginTop = '12px';
-    container.innerHTML = `
-      <div id="watchlist-panel" style="display: none; padding: 10px; border: 1px solid #aaa; background: #f8f8f8; font-size: 13px;">
-        <div id="watchlist-items" style="display: flex; flex-direction: column; gap: 8px;"></div>
-        <hr style="margin: 10px 0;"/>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <input type="number" id="add-item-id" placeholder="Item ID" style="width: 100%; padding: 4px;">
-          <input type="number" id="add-ref-percent" placeholder="Ref (%)" style="width: 100%; padding: 4px;">
-          <button id="add-watchlist-btn" style="padding: 6px;">Add</button>
+      const container = document.createElement('div');
+      container.id = 'watchlist-settings';
+      container.style.marginTop = '12px';
+      container.innerHTML = `
+        <div id="watchlist-panel" style="display: none; padding: 10px; border: 1px solid #aaa; background: #f8f8f8; font-size: 13px;">
+          <div id="watchlist-items" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          <hr style="margin: 10px 0;"/>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <input type="number" id="add-item-id" placeholder="Item ID" style="width: 100%; padding: 4px;">
+            <input type="number" id="add-ref-percent" placeholder="Ref (%)" style="width: 100%; padding: 4px;">
+            <button id="add-watchlist-btn" style="padding: 6px;">Add</button>
+          </div>
         </div>
-      </div>
-    `;
+      `;
 
-    const settingsLink = document.createElement('a');
-    settingsLink.href = '#';
-    settingsLink.className = 'back-to t-clear h c-pointer line-h24 right';
-    settingsLink.style.marginLeft = '10px';
-    settingsLink.style.fontSize = '16px';
-    settingsLink.textContent = '⚙';
+      const settingsLink = document.createElement('a');
+      settingsLink.href = '#';
+      settingsLink.className = 'back-to t-clear h c-pointer line-h24 right';
+      settingsLink.style.marginLeft = '10px';
+      settingsLink.style.fontSize = '16px';
+      settingsLink.textContent = '⚙';
 
-    const topLinks = document.querySelector('.content-title .links-top-wrap .content-title-links');
-    if (topLinks) {
-        topLinks.appendChild(settingsLink);
-        const titleContainer = document.querySelector('.content-title');
-   titleContainer?.appendChild(container);
-    }
+      let topLinks = document.querySelector('.content-title .links-top-wrap .content-title-links');
+      if (!topLinks)
+          topLinks = document.querySelector('div[class*="topSection"] div[class*="linksContainer"]');
+      if (topLinks) {
+          topLinks.appendChild(settingsLink);
 
-    // Toggle
-    settingsLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        const panel = container.querySelector('#watchlist-panel');
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    });
+          const titleContainer = document.querySelector('div[class*="appHeaderWrapper"]');
+          if (titleContainer) {
+              titleContainer.appendChild(container);
+          }
+      }
 
-    // Show watchlist
-    const renderList = async () => {
-        const listContainer = container.querySelector('#watchlist-items');
-        const list = await getMarketWatchlist_v2();
-        listContainer.innerHTML = '';
+      // Toggle
+      settingsLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          const panel = document.getElementById('watchlist-panel');
+          if (!panel) {
+              return;
+          }
+          if (panel.style.display === 'none' || !panel.style.display) {
+              panel.style.display = 'block';
+          } else {
+              panel.style.display = 'none';
+          }
+      });
 
-        if (!list.length) {
-            listContainer.innerHTML = '<i>No item added to the watchlist.</i>';
-            return;
-        }
+      const renderList = async () => {
+          const listContainer = container.querySelector('#watchlist-items');
+          const list = await getMarketWatchlist_v2();
+          listContainer.innerHTML = '';
 
-        for (const { id, name, value } of list) {
-            const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.justifyContent = 'space-between';
-            row.style.alignItems = 'center';
-            row.style.gap = '8px';
+          if (!list.length) {
+              listContainer.innerHTML = '<i>No item added to the watchlist.</i>';
+              return;
+          }
 
-            const nameLink = document.createElement('a');
-            nameLink.href = `https://www.torn.com/page.php?sid=ItemMarket#/market/view=search&itemID=${id}&itemName=${encodeURIComponent(name)}`;
-            nameLink.textContent = name;
-            nameLink.style.flex = '1';
+          for (const { id, name, value } of list) {
+              const row = document.createElement('div');
+              row.style.display = 'flex';
+              row.style.justifyContent = 'space-between';
+              row.style.alignItems = 'center';
+              row.style.gap = '8px';
 
-            const refInput = document.createElement('input');
-            refInput.type = 'number';
-            refInput.value = value;
-            refInput.style.width = '50px';
-            refInput.dataset.id = id;
+              const nameLink = document.createElement('a');
+              nameLink.href = `https://www.torn.com/page.php?sid=ItemMarket#/market/view=search&itemID=${id}&itemName=${encodeURIComponent(name)}`;
+              nameLink.textContent = name;
+              nameLink.style.flex = '1';
 
-            refInput.addEventListener('change', async (e) => {
-                const newVal = parseFloat(e.target.value);
-                if (!isNaN(newVal)) {
-                    await updateRefPercent(parseInt(e.target.dataset.id), newVal);
-                }
-            });
+              const refInput = document.createElement('input');
+              refInput.type = 'number';
+              refInput.value = value;
+              refInput.style.width = '50px';
+              refInput.dataset.id = id;
 
-            const removeBtn = document.createElement('button');
-            removeBtn.textContent = '❌';
-            removeBtn.style.padding = '2px 6px';
-            removeBtn.dataset.id = id;
+              refInput.addEventListener('change', async (e) => {
+                  const newVal = parseFloat(e.target.value);
+                  if (!isNaN(newVal)) {
+                      await updateRefPercent(parseInt(e.target.dataset.id), newVal);
+                  }
+              });
 
-            removeBtn.addEventListener('click', async () => {
-                await removeItemFromMarketWatchlist(id);
-                renderList();
-            });
+              const removeBtn = document.createElement('button');
+              removeBtn.textContent = '❌';
+              removeBtn.style.padding = '2px 6px';
+              removeBtn.dataset.id = id;
 
-            row.appendChild(nameLink);
-            row.appendChild(refInput);
-            row.appendChild(removeBtn);
+              removeBtn.addEventListener('click', async () => {
+                  await removeItemFromMarketWatchlist(id);
+                  renderList();
+              });
 
-            listContainer.appendChild(row);
-        }
-    };
+              row.appendChild(nameLink);
+              row.appendChild(refInput);
+              row.appendChild(removeBtn);
 
-    // Add button Handler
-    container.querySelector('#add-watchlist-btn').addEventListener('click', async () => {
-        const id = parseInt(document.getElementById('add-item-id').value);
-        const value = parseFloat(document.getElementById('add-ref-percent').value);
+              listContainer.appendChild(row);
+          }
+      };
 
-        if (!id || isNaN(value)) {
-            alert('Fill in a valid ID and value');
-            return;
-        }
+      container.querySelector('#add-watchlist-btn').addEventListener('click', async () => {
+          const id = parseInt(document.getElementById('add-item-id').value);
+          const value = parseFloat(document.getElementById('add-ref-percent').value);
 
-        const item = await fetchItemData(id);
-        if (!item || !item.name) {
-            alert('Invalid Item or not found.');
-            return;
-        }
+          if (!id || isNaN(value)) {
+              alert('Fill in a valid ID and value');
+              return;
+          }
 
-        await addItemToMarketWatchlist(id, item.name, value );
-        document.getElementById('add-item-id').value = '';
-        document.getElementById('add-ref-percent').value = '';
-        renderList();
-    });
+          const item = await fetchItemData(id);
+          if (!item || !item.name) {
+              alert('Invalid Item or not found.');
+              return;
+          }
 
-    await renderList();
+          await addItemToMarketWatchlist(id, item.name, value);
+          document.getElementById('add-item-id').value = '';
+          document.getElementById('add-ref-percent').value = '';
+          renderList();
+      });
+
+      await renderList();
   };
 
 
-    let alreadyInitialized = false;
-    
-    const refreshUI = () => {
+  let alreadyInitialized = false;
+  let configPanelInitialized = false;
+  let lastPath = '';
+
+  const refreshUI = () => {
       if (!alreadyInitialized) {
           alreadyInitialized = true;
           const div = document.querySelector('div[class*="sidebar"][class*="mobile"]');
-          if(!!div)
-          {
+          if (div) {
               renderMarketWatchlistBar();
           }
       }
-      if (location.href.includes('/page.php?sid=ItemMarket')) {
-        renderWatchlistConfigPanel();
-      }
-    };
 
-    const observer = new MutationObserver(refreshUI);
-    observer.observe(document.body, {childList: true, subtree: true });
+      const currentPath = location.href;
+      if (currentPath.includes('/page.php?sid=ItemMarket') && !configPanelInitialized) {
+          configPanelInitialized = true;
+          renderWatchlistConfigPanel();
+      }
+
+      lastPath = currentPath;
+  };
+
+  const targetNode = document.querySelector('.content-wrapper') || document.body;
+  const observer = new MutationObserver(() => {
+      refreshUI();
+      observer.disconnect();
+  });
+  observer.observe(targetNode, { childList: true, subtree: true });
+
+  setInterval(() => {
+      if (location.href !== lastPath) {
+          alreadyInitialized = false;
+          configPanelInitialized = false;
+          refreshUI();
+      }
+  }, 1000);
+
+
 })();
